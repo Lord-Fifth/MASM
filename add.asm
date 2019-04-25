@@ -1,75 +1,86 @@
-assume cs:code,ds:data
 data segment
-    str1 db 0ah,"Enter Ist number: $"
-    str2 db 0ah,"Enter 2nd number: $"
-    str3 db 0ah,"The sum is :$"
-    num1 db 04 dup(?)
-    num2 db 04 dup(?)
+	opr1 db 0ah,0dh,"Enter the first Number$"
+	opr2 db 0ah,0dh,"Enter the second number$" 
+	opr3 db 0ah,0dh,"INPUTTED NUMBER= $"	
+	result db 0ah,0dh,"Result=$"
+	
+	
+	num1 dw ?
+	num2 dw ?
+	num3 dw ?
+	temp dw ?
+	sum  dw ?
+
+	display macro msg
+		mov dx,offset msg
+		mov ah,09h
+		int 21h
+		endm	
+
+	read macro num	
+		local l1,exit
+		mov ah,01h	
+		int 21h
+		mov ah,00h	
+		sub ax,0030h
+		mov  num,ax
+	l1:	mov ah,01h
+		int 21h
+		cmp al,0dh
+		je exit
+		mov ah,00h
+		sub ax,0030h
+		mov temp,ax
+		mov ax,num
+		mov bx,000ah
+		mul bx	
+		add ax,temp
+		mov num,ax
+		jmp l1
+	exit:	nop
+		endm
+
+	print   macro num	
+		local l2,l3
+		mov ax,num	
+		mov cx,0000h
+	l2:	mov dx,0000h
+		mov bx,000ah
+		div bx
+		push dx	
+		inc cx 
+		cmp ax,0000h
+		jne l2
+	l3:	pop dx
+		add dx,0030h
+		mov ah,02h	
+		int 21h	
+		loop l3	
+		endm	
+
 data ends
 
 code segment
-start: mov ax,data
-       mov ds,ax
-       lea si,num1
-       lea dx,str1
-       mov ah,09h
-       int 21h
-       mov cl,04h
-loop1: mov ah,01h
-       int 21h
-       mov[si],al
-       inc si
-       loop loop1
-       dec si
-       
-       lea di,num2
-       lea dx,str2
-       mov ah,09h
-       int 21h
-       mov cl,04h
+	assume cs:code ,ds:data
+	start:	mov ax,data
+		mov ds,ax
+		display opr1
+		read num1
+		mov cx,num1
+		
+		display opr2
+		read num2		
+		mov bx,num2		
 
-loop2: mov ah,01h
-       int 21h
-       mov[di],al
-       inc di
-       loop loop2
-       dec di
-       clc
-       mov cl,04h
-       
-loop3: mov bh,[di]
-       mov bl,[si]
-       adc bh,bl
-       mov al,bh
-       mov ah,00h
-       aaa
-       
-       mov bh,al
-       mov [si],bh
-       dec si
-       dec di
-       loop loop3
-       lea dx,str3
-       mov ah,09h
-       int 21h
-       jnc next
-       mov dl,31h
-       mov ah,02h
-       int 21h
+		display result
+		add cx,bx
 
-next: mov cl,04h
-      lea si,num1
+		mov sum,cx
+		print sum	
 
-loop4: mov dl,[si]
-       add dl,30h
-       mov ah,02h
-       int 21h
-       inc si
-       loop loop4
-       mov ah,4ch
-       int 21h
-       
+		mov ah,4ch
+		int 21h	
+
 
 code ends
 end start
-    
